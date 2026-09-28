@@ -2,29 +2,27 @@ import 'dotenv/config'
 import { expect } from 'chai';
 import request from 'supertest';
 import { getTokenAdmin, getToken } from './helpers/auth.js';
-import { api } from './helpers/api.js';
+import app from '../src/app.js';
 import alunoData from './fixtures/aluno.json' with { type: 'json' };
 import disciplinaData from './fixtures/disciplina.json' with { type: 'json' };
 
 
 describe('Registrar entrega de trabalho', () => {
-
     let idAluno;
     let idDisciplina;       
 
     it('Admin deve cadastrar um aluno e aluno deve conseguir entregar trabalho', async () => {        
-
        
         //admin loga e cadastra novo aluno por json
-        const responseAluno = await api()
+        const responseAluno = await request(app)
             .post('/api/admin/alunos')
             .set('Authorization', await getTokenAdmin())
             .set('Content-Type', 'application/json')
-            .send(alunoData.aluno);          
-          
+            .send(alunoData.aluno);           
+                     
         
         //admin loga e cadastra nova disciplina por json
-        const responseDisciplina = await api()
+        const responseDisciplina = await request(app)
             .post('/api/admin/disciplinas')
             .set('Authorization', await getTokenAdmin())
             .set('Content-Type', 'application/json')
@@ -33,9 +31,8 @@ describe('Registrar entrega de trabalho', () => {
         idDisciplina = responseDisciplina.body.id;
         idAluno = responseAluno.body.id; 
 
-
         //admin loga a faz matricula de aluno na disciplina
-        const responseMatricula = await api()
+        const responseMatricula = await request(app)
             .post(`/api/admin/disciplinas/${idDisciplina}/matriculas`)
             .set('Authorization', await getTokenAdmin())
             .set('Content-Type', 'application/json')
@@ -45,7 +42,7 @@ describe('Registrar entrega de trabalho', () => {
         
         
         //aluno loga e faz entrega de trabalho
-        const responseEntrega = await api()
+        const responseEntrega = await request(app)
             .post(`/api/alunos/${idAluno}/trabalhos`)
             .set('Authorization', await getToken(alunoData.aluno.email, alunoData.aluno.senha))
             .set('Content-Type', 'application/json')
@@ -61,26 +58,27 @@ describe('Registrar entrega de trabalho', () => {
             expect(responseEntrega.body.titulo).to.equal(`Entrega do trabalho de ${disciplinaData.matematica.nome}`);
             expect(responseEntrega.body.descricao).to.equal(`Trabalho final da disciplina de ${disciplinaData.matematica.nome}`);
             expect(responseEntrega.body.status).to.equal("entregue");   
-           
-  
+            
     
-    });
+    }); 
 
-
-    after(async function () {           
+        after(async function () {           
         
-        await api()
+        await request(app)
             .delete(`/api/admin/disciplinas/${idDisciplina}`)
             .set('Authorization', await getTokenAdmin())
             .set('Content-Type', 'application/json');  
        
  
-        await api()
+        await request(app)
             .delete(`/api/admin/alunos/${idAluno}`)
             .set('Authorization', await getTokenAdmin())
             .set('Content-Type', 'application/json');     
           
    
     });
+
+
+
     
 });

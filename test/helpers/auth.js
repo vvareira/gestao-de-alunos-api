@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import request from 'supertest';
-import { api } from './api.js';
+import app from '../../src/app.js';
 
 
 let tokenEmCache = null;
@@ -9,7 +9,7 @@ export async function getTokenAdmin() {
 
     if (!tokenEmCache) {
 
-        const responseToken = await api()
+        const responseToken = await request(app)
                 .post('/api/auth/login')
                 .set('Content-Type', 'application/json')
                 .send({ email: 'admin@escola.com', senha: 'admin123' 
@@ -24,7 +24,7 @@ export async function getTokenAdmin() {
 
 export async function getToken(email, senha) {
 
-    const responseToken = await api()
+    const responseToken = await request(app)
                 .post('/api/auth/login')
                 .set('Content-Type', 'application/json')
                 .send({
